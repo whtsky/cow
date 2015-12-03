@@ -9,6 +9,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"os"
+	"syscall"
 
 	"github.com/cyfdecyf/bufio"
 	"github.com/cyfdecyf/leakybuf"
@@ -792,6 +794,25 @@ func maybeBlocked(err error) bool {
 		return false
 	}
 	return isErrTimeout(err) || isErrConnReset(err) || isHttpErrCode(err)
+}
+
+func isErrConnReset(err error) bool {
+	if ne, ok := err.(*net.OpError); ok {
+		if se, ok := ne.Err.(*os.SyscallError); ok {
+			return se.Err == syscall.ECONNRESET
+		}
+	}
+	return false
+}
+
+func isErrTooManyOpenFd(err error) bool {
+	if ne, ok := err.(*net.OpError); ok {
+		if se, ok := ne.Err.(*os.SyscallError); ok && (se.Err == syscall.EMFILE || se.Err == syscall.ENFILE) {
+			errl.Println("too many open fd")
+			return true
+		}
+	}
+	return false
 }
 
 // Connect to requested server according to whether it's visit count.
