@@ -35,7 +35,7 @@ func updateDirectList() {
 }
 
 func init() {
-	const pacRawTmpl = `var direct = 'DIRECT';
+	const pacRawTmpl = `var direct = 'DIRECT; PROXY {{.ProxyAddr}}';
 var httpProxy = 'PROXY {{.ProxyAddr}}; DIRECT';
 
 var directList = [
